@@ -1,15 +1,20 @@
-RIFA RETT — aplicación local
+RIFA RETT — aplicación
 
-1. Abre index.html con Chrome, Edge o Firefox.
+Abrir: https://rett-spain.github.io/rifa/
+(o, sin internet, abre index.html con Chrome, Edge, Firefox o Safari)
+
+1. Comprueba "Total de tiras" y "Números por tira".
 2. Introduce las tiras NO vendidas.
 3. Pulsa "Aplicar".
 4. Cuando esté todo revisado, pulsa "Bloquear sorteo".
-5. Pulsa "SORTEAR TIRA" para cada premio.
-6. Los datos se guardan automáticamente en el navegador.
+5. Pulsa "SORTEAR TIRA" (o Espacio / Enter / mando de presentaciones) para cada premio.
+6. Los datos se guardan automáticamente en el dispositivo.
 7. Usa "Guardar copia" para descargar un JSON de respaldo.
 8. Usa "Cargar copia" para restaurarlo en otro equipo o navegador.
+9. Al terminar, "Compartir resultados" envía la lista de ganadores.
 
 Sugerencia para el evento:
+- Instala la app en el móvil u ordenador antes del evento (ver README).
 - Usa "Modo pantalla" o F11.
 - Mantén una copia JSON antes de empezar el sorteo.
 - No borres datos ni cambies de navegador durante el evento.
