@@ -1,5 +1,5 @@
 // Bump CACHE whenever any app file changes so clients pick up the new version.
-const CACHE = 'rifa-rett-v2';
+const CACHE = 'rifa-rett-v3';
 const ASSETS = [
   './',
   './index.html',

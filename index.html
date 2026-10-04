@@ -96,6 +96,16 @@
     .dialog-body{padding:24px}
     .dialog-body h2{margin:0 0 10px}
     .dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+    .drawn-list-btn{width:100%;margin-top:10px}
+    .list-dialog{max-height:calc(100dvh - 32px)}
+    .list-dialog .dialog-body{display:flex;flex-direction:column;max-height:calc(100dvh - 32px)}
+    .list-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .list-head h2{margin:0}
+    .segmented{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
+    .segmented .btn[aria-pressed="true"]{background:var(--purple-soft);border-color:var(--purple);color:var(--purple-dark)}
+    .list-scroll{overflow:auto;flex:1;min-height:80px;padding-right:2px}
+    .list-dialog .history-row{grid-template-columns:48px 1fr auto}
+    .list-dialog .history-row .time{display:none}
     .screen-mode .app{max-width:none;padding:20px 28px}
     .screen-mode .topbar{margin-bottom:14px}
     .screen-mode .grid{grid-template-columns:380px 1fr}
@@ -128,6 +138,7 @@
       .history-row{grid-template-columns:48px 1fr;gap:8px}
       .history-row .range,.history-row .time{grid-column:2}
       .history-row .time{text-align:left}
+      .list-dialog .history-row .range{grid-column:auto}
     }
     @media(prefers-reduced-motion:no-preference){
       .winner-pop{animation:pop .45s cubic-bezier(.2,.8,.2,1)}
@@ -212,6 +223,7 @@
         </div>
 
         <button class="draw-button" id="drawBtn" type="button" disabled>SORTEAR TIRA</button>
+        <button class="btn drawn-list-btn" id="drawnListBtn" type="button" hidden>Ver tiras sorteadas</button>
 
         <div class="history">
           <div class="history-head">
@@ -235,6 +247,24 @@
       <div class="dialog-actions">
         <button class="btn" id="dialogCancel" type="button">Cancelar</button>
         <button class="btn btn-primary" id="dialogConfirm" type="button">Confirmar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="drawnDialog" class="list-dialog" aria-labelledby="drawnTitle">
+    <div class="dialog-body">
+      <div class="list-head">
+        <h2 id="drawnTitle">Tiras sorteadas</h2>
+        <button class="btn" id="drawnClose" type="button" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="segmented" role="group" aria-label="Ordenar">
+        <button class="btn" id="sortByDraw" type="button" aria-pressed="true">Orden de sorteo</button>
+        <button class="btn" id="sortByStrip" type="button" aria-pressed="false">Por nº de tira</button>
+      </div>
+      <div id="drawnList" class="history-list list-scroll"></div>
+      <div class="dialog-actions">
+        <button class="btn" id="drawnShare" type="button">Compartir</button>
+        <button class="btn btn-primary" id="drawnDone" type="button">Cerrar</button>
       </div>
     </div>
   </dialog>
@@ -277,8 +307,18 @@
       perStripInput: document.getElementById('perStripInput'),
       shareBtn: document.getElementById('shareBtn'),
       shareStatus: document.getElementById('shareStatus'),
-      installBtn: document.getElementById('installBtn')
+      installBtn: document.getElementById('installBtn'),
+      drawnListBtn: document.getElementById('drawnListBtn'),
+      drawnDialog: document.getElementById('drawnDialog'),
+      drawnList: document.getElementById('drawnList'),
+      drawnTitle: document.getElementById('drawnTitle'),
+      sortByDraw: document.getElementById('sortByDraw'),
+      sortByStrip: document.getElementById('sortByStrip'),
+      drawnShare: document.getElementById('drawnShare'),
+      drawnClose: document.getElementById('drawnClose'),
+      drawnDone: document.getElementById('drawnDone')
     };
+    let drawnSort = 'draw';
 
     const DEFAULT_TOTAL = 1000;
     const DEFAULT_PER_STRIP = 10;
@@ -552,6 +592,7 @@
         }
         await navigator.clipboard.writeText(text);
         els.shareStatus.textContent = 'Resultados copiados al portapapeles.';
+        els.drawnShare.textContent = 'Copiado ✓';
       }catch(e){
         if(e && e.name === 'AbortError') return;
         els.shareStatus.textContent = 'No se pudo compartir. Usa “Guardar copia”.';
@@ -647,6 +688,29 @@
       }
     }
 
+    function renderDrawnList(){
+      const rows = drawnSort === 'strip'
+        ? [...state.draws].sort((a,b) => a.strip - b.strip)
+        : [...state.draws].reverse();
+      els.drawnTitle.textContent = `Tiras sorteadas (${state.draws.length})`;
+      els.sortByDraw.setAttribute('aria-pressed', String(drawnSort === 'draw'));
+      els.sortByStrip.setAttribute('aria-pressed', String(drawnSort === 'strip'));
+      els.drawnList.innerHTML = rows.length ? rows.map(d => `
+          <div class="history-row">
+            <div class="draw-no">#${d.drawNo}</div>
+            <div class="strip">Tira ${d.strip}</div>
+            <div class="range">${rangeText(d.start, d.end)}</div>
+          </div>
+        `).join('') : '<div class="small-status">Todavía no se ha sorteado ninguna tira.</div>';
+    }
+
+    function openDrawnList(){
+      els.drawnShare.textContent = 'Compartir';
+      renderDrawnList();
+      els.drawnDialog.showModal();
+      els.drawnList.scrollTop = 0;
+    }
+
     function render(){
       const sold = state.totalStrips - state.unsold.length;
       const pool = eligiblePool();
@@ -667,6 +731,9 @@
       els.lockBtn.disabled = state.locked;
       els.drawBtn.disabled = !state.locked || pool.length === 0 || drawing;
       els.shareBtn.hidden = state.draws.length === 0;
+      els.drawnListBtn.hidden = state.draws.length === 0;
+      els.drawnListBtn.textContent = `Ver tiras sorteadas (${state.draws.length})`;
+      if(els.drawnDialog.open) renderDrawnList();
       if(!state.draws.length) els.shareStatus.textContent = '';
       syncWakeLock();
 
@@ -746,12 +813,19 @@
     els.totalInput.addEventListener('change', applySettings);
     els.perStripInput.addEventListener('change', applySettings);
     els.shareBtn.addEventListener('click', shareResults);
+    els.drawnListBtn.addEventListener('click', openDrawnList);
+    els.sortByDraw.addEventListener('click', () => { drawnSort = 'draw'; renderDrawnList(); });
+    els.sortByStrip.addEventListener('click', () => { drawnSort = 'strip'; renderDrawnList(); });
+    els.drawnShare.addEventListener('click', shareResults);
+    els.drawnClose.addEventListener('click', () => els.drawnDialog.close());
+    els.drawnDone.addEventListener('click', () => els.drawnDialog.close());
+    els.drawnDialog.addEventListener('click', e => { if(e.target === els.drawnDialog) els.drawnDialog.close(); });
     document.addEventListener('visibilitychange', syncWakeLock);
 
     // Space / Enter / presentation clicker (PageDown, →) draw a strip when nothing else has focus.
     document.addEventListener('keydown', e => {
       if(!['Space','Enter','NumpadEnter','PageDown','ArrowRight'].includes(e.code) && e.key !== 'PageDown') return;
-      if(els.dialog.open || e.repeat || e.altKey || e.ctrlKey || e.metaKey) return;
+      if(document.querySelector('dialog[open]') || e.repeat || e.altKey || e.ctrlKey || e.metaKey) return;
       if(e.target.closest && e.target.closest('input,textarea,button,select,a,dialog')) return;
       if(!state.locked || drawing) return;
       e.preventDefault();
