@@ -1,0 +1,15 @@
+RIFA RETT — aplicación local
+
+1. Abre index.html con Chrome, Edge o Firefox.
+2. Introduce las tiras NO vendidas.
+3. Pulsa "Aplicar".
+4. Cuando esté todo revisado, pulsa "Bloquear sorteo".
+5. Pulsa "SORTEAR TIRA" para cada premio.
+6. Los datos se guardan automáticamente en el navegador.
+7. Usa "Guardar copia" para descargar un JSON de respaldo.
+8. Usa "Cargar copia" para restaurarlo en otro equipo o navegador.
+
+Sugerencia para el evento:
+- Usa "Modo pantalla" o F11.
+- Mantén una copia JSON antes de empezar el sorteo.
+- No borres datos ni cambies de navegador durante el evento.
