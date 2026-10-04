@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#6f2c91" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Rifa Rett" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <title>Rifa Rett · Sorteo de tiras</title>
+  <style>
+    :root{
+      --purple:#6f2c91;
+      --purple-2:#8b4baa;
+      --purple-dark:#4b1765;
+      --purple-soft:#f4ecf8;
+      --purple-softer:#faf7fc;
+      --ink:#24152b;
+      --muted:#6f6474;
+      --border:#ded2e5;
+      --success:#2f7d55;
+      --danger:#a33a48;
+      --white:#fff;
+      --shadow:0 10px 30px rgba(75,23,101,.10);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:#fff;color:var(--ink);font-family:Inter,Segoe UI,Arial,sans-serif}
+    body{min-height:100vh}
+    button,input,textarea{font:inherit}
+    button{cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    .app{max-width:1500px;margin:0 auto;padding:24px;padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,env(safe-area-inset-right));padding-bottom:max(24px,env(safe-area-inset-bottom))}
+    [hidden]{display:none!important}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:20px}
+    .brand{display:flex;align-items:center;gap:14px}
+    .mark{width:52px;height:52px;border-radius:15px;background:var(--purple);color:#fff;display:grid;place-items:center;font-weight:900;font-size:28px;box-shadow:var(--shadow)}
+    h1{font-size:clamp(24px,3vw,42px);margin:0;line-height:1}
+    .subtitle{color:var(--muted);margin-top:6px;font-size:15px}
+    .status-pill{border:1px solid var(--border);background:var(--purple-softer);border-radius:999px;padding:10px 14px;font-weight:700;white-space:nowrap}
+    .grid{display:grid;grid-template-columns:minmax(320px,.85fr) minmax(480px,1.4fr);gap:22px;align-items:start}
+    .card{border:1px solid var(--border);border-radius:20px;background:#fff;box-shadow:var(--shadow);padding:22px}
+    .section-title{font-size:18px;font-weight:850;margin:0 0 6px}
+    .help{color:var(--muted);line-height:1.45;margin:0 0 16px}
+    label{display:block;font-size:14px;font-weight:800;margin-bottom:8px}
+    textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--border);border-radius:14px;padding:14px 16px;font-size:17px;outline:none;background:#fff}
+    textarea:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(111,44,145,.12)}
+    textarea:disabled{background:#f5f2f7;color:#786d7c}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+    .btn{min-height:46px;border-radius:12px;border:1px solid var(--border);background:#fff;padding:0 16px;font-weight:800;color:var(--ink)}
+    .btn:hover{border-color:#bba7c6}
+    .btn-primary{background:var(--purple);border-color:var(--purple);color:#fff}
+    .btn-primary:hover{background:var(--purple-dark)}
+    .btn-danger{color:var(--danger)}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
+    .settings{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+    .settings input{width:100%;min-height:46px;border:1px solid var(--border);border-radius:12px;padding:0 12px;font-size:17px;background:#fff}
+    .settings input:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px rgba(111,44,145,.12)}
+    .settings input:disabled{background:#f5f2f7;color:#786d7c}
+    .settings label{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+    .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+    .metric{background:var(--purple-soft);border-radius:16px;padding:16px;text-align:center}
+    .metric .n{font-size:32px;font-weight:900;color:var(--purple-dark);line-height:1}
+    .metric .t{font-size:12px;color:var(--muted);margin-top:6px;font-weight:750;text-transform:uppercase;letter-spacing:.04em}
+    .small-status{font-size:14px;color:var(--muted);margin-top:12px;min-height:20px}
+    .unsold-list{margin-top:16px;border-top:1px solid var(--border);padding-top:14px;max-height:230px;overflow:auto}
+    .unsold-chip{display:flex;justify-content:space-between;gap:12px;padding:8px 4px;border-bottom:1px dashed #eadff0;font-size:14px}
+    .unsold-chip strong{color:var(--purple-dark)}
+    .draw-card{min-height:500px;display:flex;flex-direction:column}
+    .draw-stage{flex:1;display:grid;place-items:center;background:linear-gradient(145deg,var(--purple-softer),#fff);border:2px solid #eadff0;border-radius:24px;padding:26px;text-align:center}
+    .draw-stage.locked{border-color:#c7afd5}
+    .eyebrow{text-transform:uppercase;letter-spacing:.12em;color:var(--purple);font-size:14px;font-weight:900}
+    .winner-strip{font-size:clamp(70px,11vw,170px);line-height:.95;font-weight:950;color:var(--purple-dark);margin:18px 0 10px;font-variant-numeric:tabular-nums}
+    .winner-strip.rolling{color:#b79ac7}
+    .winner-range{font-size:clamp(28px,4vw,54px);font-weight:900;color:var(--ink)}
+    .winner-meta{color:var(--muted);font-size:15px;margin-top:14px}
+    .draw-button{width:100%;min-height:82px;border:none;border-radius:18px;background:var(--purple);color:#fff;font-size:clamp(22px,3vw,36px);font-weight:950;margin-top:16px;letter-spacing:.02em}
+    .draw-button:hover{background:var(--purple-dark)}
+    .draw-button:disabled{background:#cdbbd5;color:#fff;cursor:not-allowed}
+    .history{margin-top:22px}
+    .history-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:10px}
+    .history-list{display:grid;gap:10px}
+    .history-row{display:grid;grid-template-columns:64px 1fr 1fr auto;gap:14px;align-items:center;border:1px solid var(--border);border-radius:14px;padding:12px 14px;background:#fff}
+    .history-row .draw-no{color:var(--muted);font-weight:800}
+    .history-row .strip{font-size:20px;font-weight:950;color:var(--purple-dark)}
+    .history-row .range{font-weight:800}
+    .history-row .time{font-size:12px;color:var(--muted);text-align:right}
+    .utility{display:flex;flex-wrap:wrap;gap:8px}
+    .note{margin-top:18px;background:var(--purple-soft);border-radius:14px;padding:13px 15px;color:#5d4b66;font-size:13px;line-height:1.45}
+    .locked-banner{display:none;background:#eaf6ef;color:#236443;border:1px solid #b9dcc7;border-radius:14px;padding:12px 14px;font-weight:800;margin-bottom:14px}
+    .locked-banner.show{display:block}
+    dialog{border:none;border-radius:18px;box-shadow:0 20px 70px rgba(0,0,0,.25);max-width:520px;width:calc(100% - 32px);padding:0}
+    dialog::backdrop{background:rgba(34,14,43,.45)}
+    .dialog-body{padding:24px}
+    .dialog-body h2{margin:0 0 10px}
+    .dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+    .screen-mode .app{max-width:none;padding:20px 28px}
+    .screen-mode .topbar{margin-bottom:14px}
+    .screen-mode .grid{grid-template-columns:380px 1fr}
+    .screen-mode .draw-card{min-height:calc(100vh - 120px)}
+    .screen-mode .history{display:none}
+    .screen-mode .note{display:none}
+    .screen-mode .winner-strip{font-size:min(19vw,240px)}
+    .screen-mode .winner-range{font-size:min(6vw,78px)}
+    .screen-mode .draw-stage{min-height:420px}
+    @media(max-width:950px){
+      .grid{grid-template-columns:1fr}
+      .screen-mode .grid{grid-template-columns:1fr}
+      .screen-mode .draw-card{min-height:auto}
+      .metrics{grid-template-columns:repeat(3,1fr)}
+      .is-locked .draw-card{order:-1}
+      .draw-card{min-height:auto}
+      .draw-stage{min-height:280px;padding:18px}
+      .draw-button{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom));z-index:5;box-shadow:0 12px 30px rgba(75,23,101,.35)}
+    }
+    @media(max-width:600px){
+      .app{padding:14px;padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
+      .topbar{align-items:stretch;flex-direction:column;gap:14px}
+      .utility{display:grid;grid-template-columns:1fr 1fr}
+      .card{padding:16px;border-radius:18px}
+      .metric{padding:12px 6px}
+      .metric .n{font-size:24px}
+      .metric .t{font-size:10px}
+      .winner-strip{font-size:min(26vw,120px)}
+      .winner-range{font-size:min(9vw,40px)}
+      .history-row{grid-template-columns:48px 1fr;gap:8px}
+      .history-row .range,.history-row .time{grid-column:2}
+      .history-row .time{text-align:left}
+    }
+    @media(prefers-reduced-motion:no-preference){
+      .winner-pop{animation:pop .45s cubic-bezier(.2,.8,.2,1)}
+      @keyframes pop{0%{transform:scale(.72);opacity:.15}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="mark">R</div>
+        <div>
+          <h1>Rifa Rett</h1>
+          <div class="subtitle" id="subtitle">Sorteo de tiras · 1.000 tiras · 10 números por tira</div>
+        </div>
+      </div>
+      <div class="utility">
+        <button class="btn btn-primary" id="installBtn" type="button" hidden>Instalar app</button>
+        <button class="btn" id="screenBtn" type="button">Modo pantalla</button>
+        <button class="btn" id="exportBtn" type="button">Guardar copia</button>
+        <button class="btn" id="importBtn" type="button">Cargar copia</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden />
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <div id="lockedBanner" class="locked-banner">✓ Sorteo bloqueado. La lista de tiras participantes está congelada.</div>
+
+        <div class="settings">
+          <div>
+            <label for="totalInput">Total de tiras</label>
+            <input id="totalInput" type="number" inputmode="numeric" min="1" max="10000" step="1" />
+          </div>
+          <div>
+            <label for="perStripInput">Números por tira</label>
+            <input id="perStripInput" type="number" inputmode="numeric" min="1" max="1000" step="1" />
+          </div>
+        </div>
+
+        <h2 class="section-title">Tiras no vendidas</h2>
+        <p class="help">Escribe únicamente las tiras que no se han vendido. Puedes usar comas y rangos.</p>
+
+        <label for="unsoldInput">Tiras excluidas</label>
+        <textarea id="unsoldInput" placeholder="Ejemplo: 73, 288, 786, 800-805"></textarea>
+
+        <div class="actions">
+          <button class="btn btn-primary" id="applyBtn" type="button">Aplicar</button>
+          <button class="btn" id="clearBtn" type="button">Limpiar</button>
+        </div>
+
+        <div id="inputStatus" class="small-status" aria-live="polite">Todas las tiras están incluidas.</div>
+
+        <div class="metrics">
+          <div class="metric"><div class="n" id="soldCount">1000</div><div class="t">Vendidas</div></div>
+          <div class="metric"><div class="n" id="unsoldCount">0</div><div class="t">No vendidas</div></div>
+          <div class="metric"><div class="n" id="drawnCount">0</div><div class="t">Sorteadas</div></div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" id="lockBtn" type="button" style="flex:1">Bloquear sorteo</button>
+          <button class="btn btn-danger" id="resetBtn" type="button">Nueva rifa</button>
+        </div>
+
+        <div id="unsoldList" class="unsold-list"></div>
+
+        <div class="note">
+          Los datos se guardan automáticamente en este dispositivo. Usa <strong>Guardar copia</strong> para crear además un archivo de respaldo que podrás restaurar en otro equipo o navegador.
+          Durante el sorteo puedes pulsar <strong>Espacio</strong>, <strong>Enter</strong> o el mando de presentaciones para sortear.
+        </div>
+      </section>
+
+      <section class="card draw-card">
+        <div class="draw-stage" id="drawStage">
+          <div>
+            <div class="eyebrow" id="drawEyebrow">Preparando el sorteo</div>
+            <div class="winner-strip" id="winnerStrip">—</div>
+            <div class="winner-range" id="winnerRange">Bloquea la rifa para comenzar</div>
+            <div class="winner-meta" id="winnerMeta">Cada tira vendida tiene exactamente la misma probabilidad.</div>
+          </div>
+        </div>
+
+        <button class="draw-button" id="drawBtn" type="button" disabled>SORTEAR TIRA</button>
+
+        <div class="history">
+          <div class="history-head">
+            <h2 class="section-title" style="margin:0">Historial del sorteo</h2>
+            <div id="remainingText" class="small-status" style="margin:0">1.000 tiras disponibles</div>
+          </div>
+          <div id="historyList" class="history-list"></div>
+          <div class="actions">
+            <button class="btn" id="shareBtn" type="button" hidden>Compartir resultados</button>
+            <span id="shareStatus" class="small-status" style="margin:0;align-self:center" aria-live="polite"></span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <dialog id="confirmDialog">
+    <div class="dialog-body">
+      <h2 id="dialogTitle">Confirmar</h2>
+      <div id="dialogText"></div>
+      <div class="dialog-actions">
+        <button class="btn" id="dialogCancel" type="button">Cancelar</button>
+        <button class="btn btn-primary" id="dialogConfirm" type="button">Confirmar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+  (() => {
+    const STORAGE_KEY = 'rifa-rett-v1';
+
+    const els = {
+      unsoldInput: document.getElementById('unsoldInput'),
+      applyBtn: document.getElementById('applyBtn'),
+      clearBtn: document.getElementById('clearBtn'),
+      lockBtn: document.getElementById('lockBtn'),
+      resetBtn: document.getElementById('resetBtn'),
+      drawBtn: document.getElementById('drawBtn'),
+      soldCount: document.getElementById('soldCount'),
+      unsoldCount: document.getElementById('unsoldCount'),
+      drawnCount: document.getElementById('drawnCount'),
+      inputStatus: document.getElementById('inputStatus'),
+      unsoldList: document.getElementById('unsoldList'),
+      lockedBanner: document.getElementById('lockedBanner'),
+      drawStage: document.getElementById('drawStage'),
+      drawEyebrow: document.getElementById('drawEyebrow'),
+      winnerStrip: document.getElementById('winnerStrip'),
+      winnerRange: document.getElementById('winnerRange'),
+      winnerMeta: document.getElementById('winnerMeta'),
+      historyList: document.getElementById('historyList'),
+      remainingText: document.getElementById('remainingText'),
+      exportBtn: document.getElementById('exportBtn'),
+      importBtn: document.getElementById('importBtn'),
+      importFile: document.getElementById('importFile'),
+      screenBtn: document.getElementById('screenBtn'),
+      dialog: document.getElementById('confirmDialog'),
+      dialogTitle: document.getElementById('dialogTitle'),
+      dialogText: document.getElementById('dialogText'),
+      dialogCancel: document.getElementById('dialogCancel'),
+      dialogConfirm: document.getElementById('dialogConfirm'),
+      subtitle: document.getElementById('subtitle'),
+      totalInput: document.getElementById('totalInput'),
+      perStripInput: document.getElementById('perStripInput'),
+      shareBtn: document.getElementById('shareBtn'),
+      shareStatus: document.getElementById('shareStatus'),
+      installBtn: document.getElementById('installBtn')
+    };
+
+    const DEFAULT_TOTAL = 1000;
+    const DEFAULT_PER_STRIP = 10;
+    const MAX_TOTAL = 10000;
+    const MAX_PER_STRIP = 1000;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const freshState = () => ({
+      version: 1,
+      totalStrips: DEFAULT_TOTAL,
+      perStrip: DEFAULT_PER_STRIP,
+      unsold: [],
+      locked: false,
+      draws: [],
+      createdAt: new Date().toISOString(),
+      lockedAt: null
+    });
+
+    let state = loadState();
+    let confirmAction = null;
+    let drawing = false;
+
+    function validInt(v, max){
+      return Number.isInteger(v) && v >= 1 && v <= max;
+    }
+
+    // Older saves/backups have no totalStrips/perStrip: they were always 1000 × 10.
+    function normalizeState(data){
+      if(!data || data.version !== 1 || !Array.isArray(data.unsold) || !Array.isArray(data.draws)) return null;
+      return {
+        version:1,
+        totalStrips: validInt(data.totalStrips, MAX_TOTAL) ? data.totalStrips : DEFAULT_TOTAL,
+        perStrip: validInt(data.perStrip, MAX_PER_STRIP) ? data.perStrip : DEFAULT_PER_STRIP,
+        unsold:data.unsold,
+        locked:Boolean(data.locked),
+        draws:data.draws,
+        createdAt:data.createdAt || new Date().toISOString(),
+        lockedAt:data.lockedAt || null
+      };
+    }
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(raw){
+          const parsed = normalizeState(JSON.parse(raw));
+          if(parsed) return parsed;
+        }
+      }catch(e){}
+      return freshState();
+    }
+
+    function saveState(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function fmt(n){
+      const width = String(state.totalStrips * state.perStrip - 1).length;
+      return String(n).padStart(width,'0');
+    }
+
+    function fmtInt(n){
+      return n.toLocaleString('es-ES');
+    }
+
+    function rangeForStrip(strip){
+      const start = (strip - 1) * state.perStrip + 1;
+      return { start, end:start + state.perStrip - 1 };
+    }
+
+    function rangeText(start, end){
+      return start === end ? fmt(start) : `${fmt(start)} – ${fmt(end)}`;
+    }
+
+    function secureInt(max){
+      if(!Number.isInteger(max) || max <= 0) throw new Error('Rango aleatorio inválido');
+      const range = 0x100000000;
+      const limit = Math.floor(range / max) * max;
+      const arr = new Uint32Array(1);
+      let value;
+      do{
+        crypto.getRandomValues(arr);
+        value = arr[0];
+      }while(value >= limit);
+      return value % max;
+    }
+
+    function parseStrips(text){
+      const max = state.totalStrips;
+      const set = new Set();
+      const trimmed = text.trim();
+      if(!trimmed) return set;
+
+      const tokens = trimmed.split(/[,;\n]+/).map(v => v.trim()).filter(Boolean);
+      for(const token of tokens){
+        if(/^\d+$/.test(token)){
+          const n = Number(token);
+          if(n < 1 || n > max) throw new Error(`La tira ${n} está fuera del rango 1–${max}.`);
+          set.add(n);
+          continue;
+        }
+        const m = token.match(/^(\d+)\s*-\s*(\d+)$/);
+        if(!m) throw new Error(`No entiendo “${token}”. Usa números, comas o rangos como 800-805.`);
+        let a = Number(m[1]), b = Number(m[2]);
+        if(a < 1 || a > max || b < 1 || b > max) throw new Error(`El rango ${token} está fuera de 1–${max}.`);
+        if(a > b) [a,b] = [b,a];
+        for(let n=a; n<=b; n++) set.add(n);
+      }
+      return set;
+    }
+
+    function compactRanges(values){
+      if(!values.length) return '';
+      const a = [...values].sort((x,y)=>x-y);
+      const out = [];
+      let start = a[0], prev = a[0];
+      for(let i=1;i<a.length;i++){
+        if(a[i] === prev + 1){ prev = a[i]; continue; }
+        out.push(start === prev ? `${start}` : `${start}-${prev}`);
+        start = prev = a[i];
+      }
+      out.push(start === prev ? `${start}` : `${start}-${prev}`);
+      return out.join(', ');
+    }
+
+    function eligiblePool(){
+      const unsold = new Set(state.unsold);
+      const drawn = new Set(state.draws.map(d=>d.strip));
+      const pool = [];
+      for(let i=1;i<=state.totalStrips;i++){
+        if(!unsold.has(i) && !drawn.has(i)) pool.push(i);
+      }
+      return pool;
+    }
+
+    function applyUnsold(){
+      if(state.locked) return;
+      try{
+        const set = parseStrips(els.unsoldInput.value);
+        state.unsold = [...set].sort((a,b)=>a-b);
+        saveState();
+        els.inputStatus.textContent = state.unsold.length
+          ? `${state.unsold.length} tira${state.unsold.length===1?'':'s'} excluida${state.unsold.length===1?'':'s'}.`
+          : 'Todas las tiras están incluidas.';
+        render();
+      }catch(err){
+        els.inputStatus.textContent = err.message;
+      }
+    }
+
+    function lockRaffle(){
+      if(state.locked) return;
+      try{
+        state.unsold = [...parseStrips(els.unsoldInput.value)].sort((a,b)=>a-b);
+      }catch(err){
+        els.inputStatus.textContent = err.message;
+        return;
+      }
+      const sold = state.totalStrips - state.unsold.length;
+      if(sold <= 0){
+        els.inputStatus.textContent = 'No se puede bloquear: no queda ninguna tira participante.';
+        return;
+      }
+      openConfirm(
+        'Bloquear sorteo',
+        `Se van a congelar ${sold} tiras vendidas y ${state.unsold.length} tiras no vendidas (${state.perStrip} números por tira). Después de bloquear no podrás modificar las exclusiones ni la configuración.`,
+        () => {
+          state.locked = true;
+          state.lockedAt = new Date().toISOString();
+          saveState();
+          render();
+        }
+      );
+    }
+
+    function drawStrip(){
+      if(drawing) return;
+      const pool = eligiblePool();
+      if(!state.locked || !pool.length) return;
+
+      const strip = pool[secureInt(pool.length)];
+      const r = rangeForStrip(strip);
+      const draw = {
+        drawNo: state.draws.length + 1,
+        strip,
+        start:r.start,
+        end:r.end,
+        at:new Date().toISOString()
+      };
+      // Persist before the reveal animation so a reload mid-animation can't lose or change the result.
+      state.draws.push(draw);
+      saveState();
+
+      revealAnimation(pool, () => {
+        els.winnerStrip.classList.remove('winner-pop');
+        void els.winnerStrip.offsetWidth;
+        els.winnerStrip.classList.add('winner-pop');
+        if(navigator.vibrate) navigator.vibrate([60,40,140]);
+        render();
+      });
+    }
+
+    function revealAnimation(pool, done){
+      if(reduceMotion || pool.length < 2){ done(); return; }
+      drawing = true;
+      els.drawBtn.disabled = true;
+      els.drawEyebrow.textContent = `Sorteo nº ${state.draws.length}`;
+      els.winnerRange.textContent = 'Sorteando…';
+      els.winnerMeta.textContent = '\u00a0';
+      els.winnerStrip.classList.add('rolling');
+      const end = performance.now() + 1800;
+      let delay = 35;
+      const tick = () => {
+        // Cosmetic only: the winner was already chosen with crypto.getRandomValues.
+        els.winnerStrip.textContent = `#${pool[Math.floor(Math.random() * pool.length)]}`;
+        if(performance.now() < end){
+          delay = Math.min(delay * 1.12, 260);
+          setTimeout(tick, delay);
+        }else{
+          drawing = false;
+          els.winnerStrip.classList.remove('rolling');
+          done();
+        }
+      };
+      tick();
+    }
+
+    function resetRaffle(){
+      openConfirm(
+        'Crear una nueva rifa',
+        'Esto borrará las tiras no vendidas y todo el historial de sorteos guardado en este navegador. Si necesitas conservarlo, guarda primero una copia.',
+        () => {
+          state = {...freshState(), totalStrips:state.totalStrips, perStrip:state.perStrip};
+          saveState();
+          render();
+        }
+      );
+    }
+
+    function applySettings(){
+      if(state.locked) return;
+      const total = Number(els.totalInput.value);
+      const per = Number(els.perStripInput.value);
+      if(!validInt(total, MAX_TOTAL) || !validInt(per, MAX_PER_STRIP)){
+        els.inputStatus.textContent = `Configuración no válida: entre 1 y ${fmtInt(MAX_TOTAL)} tiras y entre 1 y ${MAX_PER_STRIP} números por tira.`;
+        render();
+        return;
+      }
+      state.totalStrips = total;
+      state.perStrip = per;
+      const dropped = state.unsold.filter(n => n > total);
+      state.unsold = state.unsold.filter(n => n <= total);
+      saveState();
+      els.inputStatus.textContent = dropped.length
+        ? `Se han quitado ${dropped.length} tira${dropped.length===1?'':'s'} no vendida${dropped.length===1?'':'s'} fuera del nuevo rango.`
+        : 'Configuración actualizada.';
+      render();
+    }
+
+    function resultsText(){
+      const lines = state.draws.map(d => `${d.drawNo}. Tira ${d.strip} · ${rangeText(d.start, d.end)}`);
+      return `Rifa Rett · resultados del sorteo\n\n${lines.join('\n')}`;
+    }
+
+    async function shareResults(){
+      const text = resultsText();
+      try{
+        if(navigator.share){
+          await navigator.share({ title:'Rifa Rett · resultados', text });
+          return;
+        }
+        await navigator.clipboard.writeText(text);
+        els.shareStatus.textContent = 'Resultados copiados al portapapeles.';
+      }catch(e){
+        if(e && e.name === 'AbortError') return;
+        els.shareStatus.textContent = 'No se pudo compartir. Usa “Guardar copia”.';
+      }
+    }
+
+    let wakeLock = null;
+    let wakeLockPending = false;
+    async function syncWakeLock(){
+      if(!('wakeLock' in navigator) || wakeLockPending) return;
+      const want = state.locked && document.visibilityState === 'visible';
+      wakeLockPending = true;
+      try{
+        if(want && !wakeLock){
+          wakeLock = await navigator.wakeLock.request('screen');
+          wakeLock.addEventListener('release', () => { wakeLock = null; });
+        }else if(!want && wakeLock){
+          await wakeLock.release();
+          wakeLock = null;
+        }
+      }catch(e){
+      }finally{
+        wakeLockPending = false;
+      }
+    }
+
+    function openConfirm(title, text, action){
+      confirmAction = action;
+      els.dialogTitle.textContent = title;
+      els.dialogText.textContent = text;
+      els.dialog.showModal();
+    }
+
+    els.dialogCancel.addEventListener('click', () => {
+      confirmAction = null;
+      els.dialog.close();
+    });
+
+    els.dialogConfirm.addEventListener('click', () => {
+      const action = confirmAction;
+      confirmAction = null;
+      els.dialog.close();
+      if(action) action();
+    });
+
+    function exportBackup(){
+      const payload = {
+        app:'Rifa Rett',
+        exportedAt:new Date().toISOString(),
+        ...state
+      };
+      const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+      a.href = url;
+      a.download = `rifa-rett-${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function importBackup(file){
+      const reader = new FileReader();
+      reader.onload = () => {
+        try{
+          const data = normalizeState(JSON.parse(reader.result));
+          if(!data) throw new Error();
+          openConfirm(
+            'Cargar copia',
+            'La copia sustituirá el estado actual de esta rifa en el navegador.',
+            () => {
+              state = data;
+              saveState();
+              render();
+            }
+          );
+        }catch(e){
+          alert('El archivo no parece ser una copia válida de Rifa Rett.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function toggleScreenMode(){
+      document.body.classList.toggle('screen-mode');
+      els.screenBtn.textContent = document.body.classList.contains('screen-mode') ? 'Salir de pantalla' : 'Modo pantalla';
+      if(document.body.classList.contains('screen-mode') && document.documentElement.requestFullscreen){
+        document.documentElement.requestFullscreen().catch(()=>{});
+      }else if(!document.body.classList.contains('screen-mode') && document.fullscreenElement && document.exitFullscreen){
+        document.exitFullscreen().catch(()=>{});
+      }
+    }
+
+    function render(){
+      const sold = state.totalStrips - state.unsold.length;
+      const pool = eligiblePool();
+
+      els.subtitle.textContent = `Sorteo de tiras · ${fmtInt(state.totalStrips)} tiras · ${state.perStrip} número${state.perStrip===1?'':'s'} por tira`;
+      document.body.classList.toggle('is-locked', state.locked);
+      if(document.activeElement !== els.totalInput) els.totalInput.value = state.totalStrips;
+      if(document.activeElement !== els.perStripInput) els.perStripInput.value = state.perStrip;
+      els.totalInput.disabled = state.locked;
+      els.perStripInput.disabled = state.locked;
+
+      if(!state.locked){
+        els.unsoldInput.value = compactRanges(state.unsold);
+      }
+      els.unsoldInput.disabled = state.locked;
+      els.applyBtn.disabled = state.locked;
+      els.clearBtn.disabled = state.locked;
+      els.lockBtn.disabled = state.locked;
+      els.drawBtn.disabled = !state.locked || pool.length === 0 || drawing;
+      els.shareBtn.hidden = state.draws.length === 0;
+      if(!state.draws.length) els.shareStatus.textContent = '';
+      syncWakeLock();
+
+      els.soldCount.textContent = sold;
+      els.unsoldCount.textContent = state.unsold.length;
+      els.drawnCount.textContent = state.draws.length;
+      els.lockedBanner.classList.toggle('show', state.locked);
+
+      if(state.unsold.length){
+        els.unsoldList.innerHTML = state.unsold.slice(0,60).map(strip => {
+          const r = rangeForStrip(strip);
+          return `<div class="unsold-chip"><span>Tira ${strip}</span><strong>${rangeText(r.start, r.end)}</strong></div>`;
+        }).join('') + (state.unsold.length > 60 ? `<div class="small-status">+ ${state.unsold.length-60} tiras más</div>` : '');
+      }else{
+        els.unsoldList.innerHTML = '<div class="small-status">No hay tiras excluidas.</div>';
+      }
+
+      if(state.locked){
+        els.drawStage.classList.add('locked');
+        els.drawEyebrow.textContent = state.draws.length ? `Sorteo nº ${state.draws.length}` : 'Rifa bloqueada · lista preparada';
+        if(state.draws.length){
+          const last = state.draws[state.draws.length-1];
+          els.winnerStrip.textContent = `#${last.strip}`;
+          els.winnerRange.textContent = rangeText(last.start, last.end);
+          els.winnerMeta.textContent = `Tira ganadora · ${new Date(last.at).toLocaleString('es-ES')}`;
+        }else{
+          els.winnerStrip.textContent = 'LISTO';
+          els.winnerRange.textContent = `${sold} tiras participan`;
+          els.winnerMeta.textContent = 'Pulsa “SORTEAR TIRA” cuando estés preparado.';
+        }
+      }else{
+        els.drawStage.classList.remove('locked');
+        els.drawEyebrow.textContent = 'Preparando el sorteo';
+        els.winnerStrip.textContent = '—';
+        els.winnerRange.textContent = 'Bloquea la rifa para comenzar';
+        els.winnerMeta.textContent = 'Cada tira vendida tiene exactamente la misma probabilidad.';
+      }
+
+      els.remainingText.textContent = state.locked
+        ? `${pool.length} tira${pool.length===1?'':'s'} disponible${pool.length===1?'':'s'}`
+        : `${sold} tira${sold===1?'':'s'} participaría${sold===1?'':'n'}`;
+
+      if(state.draws.length){
+        els.historyList.innerHTML = [...state.draws].reverse().map(d => `
+          <div class="history-row">
+            <div class="draw-no">#${d.drawNo}</div>
+            <div class="strip">Tira ${d.strip}</div>
+            <div class="range">${rangeText(d.start, d.end)}</div>
+            <div class="time">${new Date(d.at).toLocaleString('es-ES')}</div>
+          </div>
+        `).join('');
+      }else{
+        els.historyList.innerHTML = '<div class="small-status">Todavía no se ha sorteado ninguna tira.</div>';
+      }
+    }
+
+    els.applyBtn.addEventListener('click', applyUnsold);
+    els.clearBtn.addEventListener('click', () => {
+      if(state.locked) return;
+      els.unsoldInput.value = '';
+      state.unsold = [];
+      saveState();
+      render();
+      els.inputStatus.textContent = 'Todas las tiras están incluidas.';
+    });
+    els.lockBtn.addEventListener('click', lockRaffle);
+    els.drawBtn.addEventListener('click', drawStrip);
+    els.resetBtn.addEventListener('click', resetRaffle);
+    els.exportBtn.addEventListener('click', exportBackup);
+    els.importBtn.addEventListener('click', () => els.importFile.click());
+    els.importFile.addEventListener('change', () => {
+      const f = els.importFile.files && els.importFile.files[0];
+      if(f) importBackup(f);
+      els.importFile.value = '';
+    });
+    els.screenBtn.addEventListener('click', toggleScreenMode);
+    els.totalInput.addEventListener('change', applySettings);
+    els.perStripInput.addEventListener('change', applySettings);
+    els.shareBtn.addEventListener('click', shareResults);
+    document.addEventListener('visibilitychange', syncWakeLock);
+
+    // Space / Enter / presentation clicker (PageDown, →) draw a strip when nothing else has focus.
+    document.addEventListener('keydown', e => {
+      if(!['Space','Enter','NumpadEnter','PageDown','ArrowRight'].includes(e.code) && e.key !== 'PageDown') return;
+      if(els.dialog.open || e.repeat || e.altKey || e.ctrlKey || e.metaKey) return;
+      if(e.target.closest && e.target.closest('input,textarea,button,select,a,dialog')) return;
+      if(!state.locked || drawing) return;
+      e.preventDefault();
+      drawStrip();
+    });
+
+    let installPrompt = null;
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      installPrompt = e;
+      els.installBtn.hidden = false;
+    });
+    window.addEventListener('appinstalled', () => {
+      installPrompt = null;
+      els.installBtn.hidden = true;
+    });
+    els.installBtn.addEventListener('click', async () => {
+      if(!installPrompt) return;
+      installPrompt.prompt();
+      await installPrompt.userChoice.catch(()=>{});
+      installPrompt = null;
+      els.installBtn.hidden = true;
+    });
+
+    if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    }
+
+    render();
+  })();
+  </script>
+</body>
+</html>
